@@ -1,0 +1,103 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from flask import Flask, jsonify, render_template,request\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "\n",
+    "df = pd.read_csv('cleaned.csv')\n",
+    "\n",
+    "df = df.drop(columns=['Week Start','Cases - Cumulative','Percent Tested Positive - Weekly','Deaths - Cumulative','Death Rate - Cumulative',\n",
+    "       'Population','Percent Tested Positive - Cumulative','Test Rate - Weekly','Tests - Cumulative','Test Rate - Cumulative','Case Rate - Cumulative','Week End','Week Number','Test Rate - Cumulative','Row ID','ZIP Code Location', 'ZIP Code'])\n",
+    "\n",
+    "#Fix Column Names\n",
+    "df.columns = df.columns.str.strip().str.lower().str.replace('-', '').str.replace(' ', '_').str.replace('__', '_')\n",
+    "\n",
+    "\n",
+    "X = df.drop('deaths_weekly', axis = 1)\n",
+    "y = df['deaths_weekly'].values.reshape(-1, 1)\n",
+    "\n",
+    "\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "\n",
+    "X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)\n",
+    "\n",
+    "from sklearn.linear_model import LinearRegression\n",
+    "model = LinearRegression()\n",
+    "model.fit(X_train, y_train)\n",
+    "\n",
+    "#======================================================\n",
+    "# Flask app\n",
+    "#======================================================\n",
+    "app = Flask(__name__)\n",
+    "#@app.route(\"/\")\n",
+    "#def main():\n",
+    "\n",
+    "@app.route(\"/\",methods=['POST', 'GET'])\n",
+    "def main():\n",
+    "#https://stackoverflow.com/questions/56934303/assign-a-variable-from-html-input-to-python-flask    \n",
+    "    state = request.form.get('state')\n",
+    "    zipcode = request.form.get('zipcode')\n",
+    "    wcases = request.form.get('weeklycases')\n",
+    "    global output \n",
+    "    output=[state,zipcode,wcases]\n",
+    "    print(\"next\")\n",
+    "    print(output)\n",
+    "\n",
+    "    return render_template(\"index.html\",output=output)\n",
+    "\n",
+    "#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n",
+    "if __name__ == \"__main__\":\n",
+    "    app.run(debug=True)\n",
+    "\n",
+    "    \n",
+    "    \n",
+    "from sklearn.preprocessing import StandardScaler\n",
+    "\n",
+    "X_test =[336,371,1273,8.8]\n",
+    "\n",
+    "X_test =np.asarray(X_test)\n",
+    "X_test =X_test.reshape(1,-1)\n",
+    "\n",
+    "predictions = model.predict(X_test)\n",
+    "\n",
+    "\n",
+    "predictions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3.7.6 64-bit ('PythonData': conda)",
+   "language": "python",
+   "name": "python37664bitpythondataconda50f769afb6f144e98c521b2eceb85317"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.6"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
